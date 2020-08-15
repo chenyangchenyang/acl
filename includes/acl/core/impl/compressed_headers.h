@@ -34,6 +34,10 @@
 
 #include <cstdint>
 
+#define ACL_IMPL_USE_STAGED_CONSTANT_DECOMPRESSION
+#define ACL_IMPL_USE_STAGED_ANIMATED_DECOMPRESSION
+#define ACL_IMPL_SWIZZLE_CONSTANT_ROTATIONS
+
 ACL_IMPL_FILE_PRAGMA_PUSH
 
 namespace acl
@@ -168,6 +172,14 @@ namespace acl
 
 			// The number of animated rot/trans/scale tracks.
 			uint32_t						num_animated_variable_sub_tracks;
+			uint32_t						num_animated_rotation_sub_tracks;
+			uint32_t						num_animated_translation_sub_tracks;
+			uint32_t						num_animated_scale_sub_tracks;			// TODO: Not needed?
+
+			// The number of constant sub-track samples stored, does not include default samples
+			uint32_t						num_constant_rotation_samples;
+			uint32_t						num_constant_translation_samples;
+			uint32_t						num_constant_scale_samples;			// TODO: Not needed?
 
 			// Offset to the segment headers data.
 			ptr_offset32<segment_header>	segment_headers_offset;

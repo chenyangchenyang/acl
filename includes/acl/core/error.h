@@ -62,7 +62,7 @@ ACL_IMPL_FILE_PRAGMA_PUSH
 //    By default if no macro mentioned above is defined, all asserts will be stripped
 //    at compile time.
 //////////////////////////////////////////////////////////////////////////
-
+//#define ACL_ON_ASSERT_ABORT
 #if defined(ACL_ON_ASSERT_ABORT)
 
 	#include <cstdio>

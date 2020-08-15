@@ -342,7 +342,7 @@ namespace acl
 			uint32_t num_output_bones = 0;
 			uint32_t* output_bone_mapping = create_output_track_mapping(allocator, track_list, num_output_bones);
 
-			const uint32_t constant_data_size = get_constant_data_size(lossy_clip_context, output_bone_mapping, num_output_bones);
+			const uint32_t constant_data_size = get_constant_data_size(lossy_clip_context);
 
 			calculate_animated_data_size(lossy_clip_context, output_bone_mapping, num_output_bones);
 
@@ -478,6 +478,10 @@ namespace acl
 
 			transforms_header->num_segments = lossy_clip_context.num_segments;
 			transforms_header->num_animated_variable_sub_tracks = num_animated_variable_sub_tracks;
+			get_num_constant_samples(lossy_clip_context, transforms_header->num_constant_rotation_samples, transforms_header->num_constant_translation_samples, transforms_header->num_constant_scale_samples);
+			get_num_animated_sub_tracks(lossy_clip_context.segments[0],
+				[](animation_track_type8 group_type, uint32_t bone_index) { (void)group_type; (void)bone_index; return true; },	// Count every animated track, variable or not
+				transforms_header->num_animated_rotation_sub_tracks, transforms_header->num_animated_translation_sub_tracks, transforms_header->num_animated_scale_sub_tracks);
 			const uint32_t segment_start_indices_offset = align_to<uint32_t>(sizeof(transform_tracks_header), 4);	// Relative to the start of our header
 			transforms_header->segment_headers_offset = align_to(segment_start_indices_offset + segment_start_indices_size, 4);
 			transforms_header->default_tracks_bitset_offset = align_to(transforms_header->segment_headers_offset + segment_headers_size, 4);
@@ -498,7 +502,7 @@ namespace acl
 
 			uint32_t written_constant_data_size = 0;
 			if (constant_data_size > 0)
-				written_constant_data_size = write_constant_track_data(lossy_clip_context, transforms_header->get_constant_track_data(), constant_data_size, output_bone_mapping, num_output_bones);
+				written_constant_data_size = write_constant_track_data(lossy_clip_context, settings.rotation_format, transforms_header->get_constant_track_data(), constant_data_size, output_bone_mapping, num_output_bones);
 			else
 				transforms_header->constant_track_data_offset = invalid_ptr_offset();
 
@@ -627,11 +631,9 @@ namespace acl
 #endif
 
 			deallocate_type_array(allocator, output_bone_mapping, num_output_bones);
-			destroy_clip_context(allocator, lossy_clip_context);
-			destroy_clip_context(allocator, raw_clip_context);
-
-			if (is_additive)
-				destroy_clip_context(allocator, additive_base_clip_context);
+			destroy_clip_context(lossy_clip_context);
+			destroy_clip_context(raw_clip_context);
+			destroy_clip_context(additive_base_clip_context);
 
 			return error_result();
 		}
