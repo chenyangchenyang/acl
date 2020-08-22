@@ -39,45 +39,62 @@ namespace acl
 {
 	namespace acl_impl
 	{
-		inline void get_num_animated_sub_tracks(const SegmentContext& segment,
+		inline void get_num_sub_tracks(const SegmentContext& segment,
 			const std::function<bool(animation_track_type8 group_type, uint32_t bone_index)>& group_filter_action,
-			uint32_t& out_num_animated_rotation_sub_tracks, uint32_t& out_num_animated_translation_sub_tracks, uint32_t& out_num_animated_scale_sub_tracks)
+			uint32_t& out_num_rotation_sub_tracks, uint32_t& out_num_translation_sub_tracks, uint32_t& out_num_scale_sub_tracks)
 		{
-			uint32_t num_animated_rotation_sub_tracks = 0;
-			uint32_t num_animated_translation_sub_tracks = 0;
-			uint32_t num_animated_scale_sub_tracks = 0;
+			uint32_t num_rotation_sub_tracks = 0;
+			uint32_t num_translation_sub_tracks = 0;
+			uint32_t num_scale_sub_tracks = 0;
 			for (uint32_t bone_index = 0; bone_index < segment.num_bones; ++bone_index)
 			{
 				const BoneStreams& bone_stream = segment.bone_streams[bone_index];
 				if (bone_stream.output_index == k_invalid_track_index)
 					continue;	// Stripped
 
-				if (!bone_stream.is_rotation_constant && group_filter_action(animation_track_type8::rotation, bone_index))
-					num_animated_rotation_sub_tracks++;
+				if (group_filter_action(animation_track_type8::rotation, bone_index))
+					num_rotation_sub_tracks++;
 
-				if (!bone_stream.is_translation_constant && group_filter_action(animation_track_type8::translation, bone_index))
-					num_animated_translation_sub_tracks++;
+				if (group_filter_action(animation_track_type8::translation, bone_index))
+					num_translation_sub_tracks++;
 
-				if (!bone_stream.is_scale_constant && group_filter_action(animation_track_type8::scale, bone_index))
-					num_animated_scale_sub_tracks++;
+				if (group_filter_action(animation_track_type8::scale, bone_index))
+					num_scale_sub_tracks++;
 			}
 
-			out_num_animated_rotation_sub_tracks = num_animated_rotation_sub_tracks;
-			out_num_animated_translation_sub_tracks = num_animated_translation_sub_tracks;
-			out_num_animated_scale_sub_tracks = num_animated_scale_sub_tracks;
+			out_num_rotation_sub_tracks = num_rotation_sub_tracks;
+			out_num_translation_sub_tracks = num_translation_sub_tracks;
+			out_num_scale_sub_tracks = num_scale_sub_tracks;
 		}
 
-		inline animation_track_type8* calculate_animated_sub_track_groups(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones, uint32_t& out_num_groups,
+		inline void get_num_animated_sub_tracks(const SegmentContext& segment,
+			uint32_t& out_num_animated_rotation_sub_tracks, uint32_t& out_num_animated_translation_sub_tracks, uint32_t& out_num_animated_scale_sub_tracks)
+		{
+			const auto animated_group_filter_action = [&](animation_track_type8 group_type, uint32_t bone_index)
+			{
+				const BoneStreams& bone_stream = segment.bone_streams[bone_index];
+				if (group_type == animation_track_type8::rotation)
+					return !bone_stream.is_rotation_constant;
+				else if (group_type == animation_track_type8::translation)
+					return !bone_stream.is_translation_constant;
+				else
+					return !bone_stream.is_scale_constant;
+			};
+
+			get_num_sub_tracks(segment, animated_group_filter_action, out_num_animated_rotation_sub_tracks, out_num_animated_translation_sub_tracks, out_num_animated_scale_sub_tracks);
+		}
+
+		inline animation_track_type8* calculate_sub_track_groups(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones, uint32_t& out_num_groups,
 			const std::function<bool(animation_track_type8 group_type, uint32_t bone_index)>& group_filter_action)
 		{
-			uint32_t num_animated_rotation_sub_tracks = 0;
-			uint32_t num_animated_translation_sub_tracks = 0;
-			uint32_t num_animated_scale_sub_tracks = 0;
-			get_num_animated_sub_tracks(segment, group_filter_action, num_animated_rotation_sub_tracks, num_animated_translation_sub_tracks, num_animated_scale_sub_tracks);
+			uint32_t num_rotation_sub_tracks = 0;
+			uint32_t num_translation_sub_tracks = 0;
+			uint32_t num_scale_sub_tracks = 0;
+			get_num_sub_tracks(segment, group_filter_action, num_rotation_sub_tracks, num_translation_sub_tracks, num_scale_sub_tracks);
 
-			const uint32_t num_rotation_groups = (num_animated_rotation_sub_tracks + 3) / 4;
-			const uint32_t num_translation_groups = (num_animated_translation_sub_tracks + 3) / 4;
-			const uint32_t num_scale_groups = (num_animated_scale_sub_tracks + 3) / 4;
+			const uint32_t num_rotation_groups = (num_rotation_sub_tracks + 3) / 4;
+			const uint32_t num_translation_groups = (num_translation_sub_tracks + 3) / 4;
+			const uint32_t num_scale_groups = (num_scale_sub_tracks + 3) / 4;
 			const uint32_t num_groups = num_rotation_groups + num_translation_groups + num_scale_groups;
 
 			animation_track_type8* sub_track_groups = allocate_type_array<animation_track_type8>(*segment.clip->allocator, num_groups);
@@ -85,13 +102,13 @@ namespace acl
 
 			// Simulate reading in groups of 4
 			uint32_t num_cached_rotations = 0;
-			uint32_t num_left_rotations = num_animated_rotation_sub_tracks;
+			uint32_t num_left_rotations = num_rotation_sub_tracks;
 
 			uint32_t num_cached_translations = 0;
-			uint32_t num_left_translations = num_animated_translation_sub_tracks;
+			uint32_t num_left_translations = num_translation_sub_tracks;
 
 			uint32_t num_cached_scales = 0;
-			uint32_t num_left_scales = num_animated_scale_sub_tracks;
+			uint32_t num_left_scales = num_scale_sub_tracks;
 
 			uint32_t current_group_index = 0;
 
@@ -125,15 +142,14 @@ namespace acl
 				}
 
 				const uint32_t bone_index = output_bone_mapping[output_index];
-				const BoneStreams& bone_stream = segment.bone_streams[bone_index];
 
-				if (!bone_stream.is_rotation_constant && group_filter_action(animation_track_type8::rotation, bone_index))
+				if (group_filter_action(animation_track_type8::rotation, bone_index))
 					num_cached_rotations--;		// Consumed
 
-				if (!bone_stream.is_translation_constant && group_filter_action(animation_track_type8::translation, bone_index))
+				if (group_filter_action(animation_track_type8::translation, bone_index))
 					num_cached_translations--;	// Consumed
 
-				if (!bone_stream.is_scale_constant && group_filter_action(animation_track_type8::scale, bone_index))
+				if (group_filter_action(animation_track_type8::scale, bone_index))
 					num_cached_scales--;		// Consumed
 			}
 
@@ -143,13 +159,13 @@ namespace acl
 			return sub_track_groups;
 		}
 
-		inline void animated_group_writer(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones,
+		inline void group_writer(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones,
 			const std::function<bool(animation_track_type8 group_type, uint32_t bone_index)>& group_filter_action,
 			const std::function<void(animation_track_type8 group_type, uint32_t group_size, uint32_t bone_index)>& group_entry_action,
 			const std::function<void(animation_track_type8 group_type, uint32_t group_size)>& group_flush_action)
 		{
 			uint32_t num_groups = 0;
-			animation_track_type8* sub_track_groups = calculate_animated_sub_track_groups(segment, output_bone_mapping, num_output_bones, num_groups, group_filter_action);
+			animation_track_type8* sub_track_groups = calculate_sub_track_groups(segment, output_bone_mapping, num_output_bones, num_groups, group_filter_action);
 
 			uint32_t group_size = 0;
 
@@ -165,9 +181,8 @@ namespace acl
 					for (; group_size < 4 && rotation_output_index < num_output_bones; ++rotation_output_index)
 					{
 						const uint32_t bone_index = output_bone_mapping[rotation_output_index];
-						const BoneStreams& bone_stream = segment.bone_streams[bone_index];
 
-						if (!bone_stream.is_rotation_constant && group_filter_action(animation_track_type8::rotation, bone_index))
+						if (group_filter_action(animation_track_type8::rotation, bone_index))
 							group_entry_action(group_type, group_size++, bone_index);
 					}
 				}
@@ -176,9 +191,8 @@ namespace acl
 					for (; group_size < 4 && translation_output_index < num_output_bones; ++translation_output_index)
 					{
 						const uint32_t bone_index = output_bone_mapping[translation_output_index];
-						const BoneStreams& bone_stream = segment.bone_streams[bone_index];
 
-						if (!bone_stream.is_translation_constant && group_filter_action(animation_track_type8::translation, bone_index))
+						if (group_filter_action(animation_track_type8::translation, bone_index))
 							group_entry_action(group_type, group_size++, bone_index);
 					}
 				}
@@ -187,9 +201,8 @@ namespace acl
 					for (; group_size < 4 && scale_output_index < num_output_bones; ++scale_output_index)
 					{
 						const uint32_t bone_index = output_bone_mapping[scale_output_index];
-						const BoneStreams& bone_stream = segment.bone_streams[bone_index];
 
-						if (!bone_stream.is_scale_constant && group_filter_action(animation_track_type8::scale, bone_index))
+						if (group_filter_action(animation_track_type8::scale, bone_index))
 							group_entry_action(group_type, group_size++, bone_index);
 					}
 				}
@@ -202,6 +215,43 @@ namespace acl
 			}
 
 			deallocate_type_array(*segment.clip->allocator, sub_track_groups, num_groups);
+		}
+
+		inline void animated_group_writer(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones,
+			const std::function<bool(animation_track_type8 group_type, uint32_t bone_index)>& group_filter_action,
+			const std::function<void(animation_track_type8 group_type, uint32_t group_size, uint32_t bone_index)>& group_entry_action,
+			const std::function<void(animation_track_type8 group_type, uint32_t group_size)>& group_flush_action)
+		{
+			const auto animated_group_filter_action = [&](animation_track_type8 group_type, uint32_t bone_index)
+			{
+				const BoneStreams& bone_stream = segment.bone_streams[bone_index];
+				if (group_type == animation_track_type8::rotation)
+					return !bone_stream.is_rotation_constant && group_filter_action(group_type, bone_index);
+				else if (group_type == animation_track_type8::translation)
+					return !bone_stream.is_translation_constant && group_filter_action(group_type, bone_index);
+				else
+					return !bone_stream.is_scale_constant && group_filter_action(group_type, bone_index);
+			};
+
+			group_writer(segment, output_bone_mapping, num_output_bones, animated_group_filter_action, group_entry_action, group_flush_action);
+		}
+
+		inline void constant_group_writer(const SegmentContext& segment, const uint32_t* output_bone_mapping, uint32_t num_output_bones,
+			const std::function<void(animation_track_type8 group_type, uint32_t group_size, uint32_t bone_index)>& group_entry_action,
+			const std::function<void(animation_track_type8 group_type, uint32_t group_size)>& group_flush_action)
+		{
+			const auto constant_group_filter_action = [&](animation_track_type8 group_type, uint32_t bone_index)
+			{
+				const BoneStreams& bone_stream = segment.bone_streams[bone_index];
+				if (group_type == animation_track_type8::rotation)
+					return !bone_stream.is_rotation_default && bone_stream.is_rotation_constant;
+				else if (group_type == animation_track_type8::translation)
+					return !bone_stream.is_translation_default && bone_stream.is_translation_constant;
+				else
+					return !bone_stream.is_scale_default && bone_stream.is_scale_constant;
+			};
+
+			group_writer(segment, output_bone_mapping, num_output_bones, constant_group_filter_action, group_entry_action, group_flush_action);
 		}
 	}
 }

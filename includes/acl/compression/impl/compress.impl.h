@@ -480,7 +480,6 @@ namespace acl
 			transforms_header->num_animated_variable_sub_tracks = num_animated_variable_sub_tracks;
 			get_num_constant_samples(lossy_clip_context, transforms_header->num_constant_rotation_samples, transforms_header->num_constant_translation_samples, transforms_header->num_constant_scale_samples);
 			get_num_animated_sub_tracks(lossy_clip_context.segments[0],
-				[](animation_track_type8 group_type, uint32_t bone_index) { (void)group_type; (void)bone_index; return true; },	// Count every animated track, variable or not
 				transforms_header->num_animated_rotation_sub_tracks, transforms_header->num_animated_translation_sub_tracks, transforms_header->num_animated_scale_sub_tracks);
 			const uint32_t segment_start_indices_offset = align_to<uint32_t>(sizeof(transform_tracks_header), 4);	// Relative to the start of our header
 			transforms_header->segment_headers_offset = align_to(segment_start_indices_offset + segment_start_indices_size, 4);

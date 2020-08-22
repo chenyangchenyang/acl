@@ -43,15 +43,15 @@ namespace acl
 
 	static_assert(k_num_bit_rates == 19, "Expecting 19 bit rates");
 
-	inline uint32_t get_num_bits_at_bit_rate(uint8_t bit_rate)
+	inline uint32_t get_num_bits_at_bit_rate(uint32_t bit_rate)
 	{
 		ACL_ASSERT(bit_rate <= k_highest_bit_rate, "Invalid bit rate: %u", bit_rate);
 		return k_bit_rate_num_bits[bit_rate];
 	}
 
 	// Track is constant, our constant sample is stored in the range information
-	constexpr bool is_constant_bit_rate(uint8_t bit_rate) { return bit_rate == 0; }
-	constexpr bool is_raw_bit_rate(uint8_t bit_rate) { return bit_rate == k_highest_bit_rate; }
+	constexpr bool is_constant_bit_rate(uint32_t bit_rate) { return bit_rate == 0; }
+	constexpr bool is_raw_bit_rate(uint32_t bit_rate) { return bit_rate == k_highest_bit_rate; }
 
 	struct BoneBitRate
 	{

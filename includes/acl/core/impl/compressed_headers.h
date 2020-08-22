@@ -36,7 +36,9 @@
 
 #define ACL_IMPL_USE_STAGED_CONSTANT_DECOMPRESSION
 #define ACL_IMPL_USE_STAGED_ANIMATED_DECOMPRESSION
-#define ACL_IMPL_SWIZZLE_CONSTANT_ROTATIONS
+
+// This is a bit slower because of the added bookkeeping when we unpack
+//#define ACL_IMPL_USE_CONSTANT_GROUPS
 
 ACL_IMPL_FILE_PRAGMA_PUSH
 
