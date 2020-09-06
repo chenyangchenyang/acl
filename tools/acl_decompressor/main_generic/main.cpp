@@ -172,8 +172,10 @@ static bool read_metadata_file(const char* metadata_filename, const char*& out_m
 int main(int argc, char* argv[])
 {
 #if defined(_WIN32)
-	// Set the process affinity to core 6, on Ryzen 2950X it is the fastest core of the Die 1
-	SetProcessAffinityMask(GetCurrentProcess(), 1 << 6);
+	// Set the process affinity to physical core 6 (out of 12), on Ryzen 2950X it is the fastest core of the Die 1
+	const DWORD_PTR physical_core_index = 6;
+	const DWORD_PTR logical_core_index = physical_core_index * 2;
+	SetProcessAffinityMask(GetCurrentProcess(), 1 << logical_core_index);
 #endif
 
 	const char* metadata_filename = nullptr;

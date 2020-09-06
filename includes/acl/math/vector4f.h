@@ -35,64 +35,68 @@ ACL_IMPL_FILE_PRAGMA_PUSH
 
 namespace acl
 {
-	//////////////////////////////////////////////////////////////////////////
-	// Per component logical AND between the inputs: input0 & input1
-	//////////////////////////////////////////////////////////////////////////
-	inline rtm::vector4f RTM_SIMD_CALL vector_and(rtm::vector4f_arg0 input0, rtm::vector4f_arg1 input1) RTM_NO_EXCEPT
+	// Temporary put here until they are included in RTM
+	namespace acl_impl
 	{
+		//////////////////////////////////////////////////////////////////////////
+		// Per component logical AND between the inputs: input0 & input1
+		//////////////////////////////////////////////////////////////////////////
+		inline rtm::vector4f RTM_SIMD_CALL vector_and(rtm::vector4f_arg0 input0, rtm::vector4f_arg1 input1) RTM_NO_EXCEPT
+		{
 #if defined(RTM_SSE2_INTRINSICS)
-		return _mm_and_ps(input0, input1);
+			return _mm_and_ps(input0, input1);
 #elif defined(RTM_NEON_INTRINSICS)
-		return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(input0), vreinterpretq_u32_f32(input1)));
+			return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(input0), vreinterpretq_u32_f32(input1)));
 #else
-		uint32_t input0_[4];
-		uint32_t input1_[4];
+			uint32_t input0_[4];
+			uint32_t input1_[4];
 
-		static_assert(sizeof(rtm::vector4f) == sizeof(input0_), "Unexpected size");
-		std::memcpy(&input0_[0], &input0, sizeof(rtm::vector4f));
-		std::memcpy(&input1_[0], &input1, sizeof(rtm::vector4f));
+			static_assert(sizeof(rtm::vector4f) == sizeof(input0_), "Unexpected size");
+			std::memcpy(&input0_[0], &input0, sizeof(rtm::vector4f));
+			std::memcpy(&input1_[0], &input1, sizeof(rtm::vector4f));
 
-		uint32_t result_[4];
-		result_[0] = input0_[0] & input1_[0];
-		result_[1] = input0_[1] & input1_[1];
-		result_[2] = input0_[2] & input1_[2];
-		result_[3] = input0_[3] & input1_[3];
+			uint32_t result_[4];
+			result_[0] = input0_[0] & input1_[0];
+			result_[1] = input0_[1] & input1_[1];
+			result_[2] = input0_[2] & input1_[2];
+			result_[3] = input0_[3] & input1_[3];
 
-		rtm::vector4f result;
-		std::memcpy(&result, &result_[0], sizeof(rtm::vector4f));
+			rtm::vector4f result;
+			std::memcpy(&result, &result_[0], sizeof(rtm::vector4f));
 
-		return result;
+			return result;
 #endif
-	}
+		}
 
-	//////////////////////////////////////////////////////////////////////////
-	// Per component logical XOR between the inputs: input0 ^ input1
-	//////////////////////////////////////////////////////////////////////////
-	inline rtm::vector4f RTM_SIMD_CALL vector_xor(rtm::vector4f_arg0 input0, rtm::vector4f_arg1 input1) RTM_NO_EXCEPT
-	{
+		//////////////////////////////////////////////////////////////////////////
+		// Per component logical XOR between the inputs: input0 ^ input1
+		//////////////////////////////////////////////////////////////////////////
+		inline rtm::vector4f RTM_SIMD_CALL vector_xor(rtm::vector4f_arg0 input0, rtm::vector4f_arg1 input1) RTM_NO_EXCEPT
+		{
 #if defined(RTM_SSE2_INTRINSICS)
-		return _mm_xor_ps(input0, input1);
+			return _mm_xor_ps(input0, input1);
 #elif defined(RTM_NEON_INTRINSICS)
-		return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(input0), vreinterpretq_u32_f32(input1)));
+			return vreinterpretq_f32_u32(veorq_u32(vreinterpretq_u32_f32(input0), vreinterpretq_u32_f32(input1)));
 #else
-		uint32_t input0_[4];
-		uint32_t input1_[4];
+			uint32_t input0_[4];
+			uint32_t input1_[4];
 
-		static_assert(sizeof(rtm::vector4f) == sizeof(input0_), "Unexpected size");
-		std::memcpy(&input0_[0], &input0, sizeof(rtm::vector4f));
-		std::memcpy(&input1_[0], &input1, sizeof(rtm::vector4f));
+			static_assert(sizeof(rtm::vector4f) == sizeof(input0_), "Unexpected size");
+			std::memcpy(&input0_[0], &input0, sizeof(rtm::vector4f));
+			std::memcpy(&input1_[0], &input1, sizeof(rtm::vector4f));
 
-		uint32_t result_[4];
-		result_[0] = input0_[0] ^ input1_[0];
-		result_[1] = input0_[1] ^ input1_[1];
-		result_[2] = input0_[2] ^ input1_[2];
-		result_[3] = input0_[3] ^ input1_[3];
+			uint32_t result_[4];
+			result_[0] = input0_[0] ^ input1_[0];
+			result_[1] = input0_[1] ^ input1_[1];
+			result_[2] = input0_[2] ^ input1_[2];
+			result_[3] = input0_[3] ^ input1_[3];
 
-		rtm::vector4f result;
-		std::memcpy(&result, &result_[0], sizeof(rtm::vector4f));
+			rtm::vector4f result;
+			std::memcpy(&result, &result_[0], sizeof(rtm::vector4f));
 
-		return result;
+			return result;
 #endif
+		}
 	}
 }
 
