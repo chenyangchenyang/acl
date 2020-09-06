@@ -429,7 +429,8 @@ namespace acl
 				const rtm::vector4f sample_wwww = rtm::vector_mix<rtm::mix4::y, rtm::mix4::w, rtm::mix4::b, rtm::mix4::d>(tmp1, tmp3);
 				output_scratch[3] = sample_wwww;
 
-				clip_range_ignore_mask_v32f = rtm::vector_zero();	// Won't be used, just initialize it to something
+				// TODO: Optimize for SSE/NEON, codegen for this might not be optimal
+				clip_range_ignore_mask_v32f = rtm::mask_set(0U, 0U, 0U, 0U);	// Won't be used, just initialize it to something
 			}
 
 			output_scratch[0] = sample_xxxx;
@@ -763,7 +764,7 @@ namespace acl
 				// Skip prior samples
 				animated_track_data_bit_offset += skip_size * 3;
 				segment_range_data += sizeof(uint8_t) * 6 * unpack_index;
-				clip_range_data += sizeof(rtm::float3f) * unpack_index;
+				clip_range_data += sizeof(rtm::float3f) * 2 * unpack_index;
 
 				const uint32_t num_bits_at_bit_rate = format_per_track_data[unpack_index];
 
@@ -1290,10 +1291,7 @@ namespace acl
 
 				// If we have some range reduction, skip the data we read
 				if (are_any_enum_flags_set(decomp_context.range_reduction, range_reduction_flags8::translations))
-				{
-					const uint32_t range_entry_size = 3 * sizeof(float);
-					clip_sampling_context.clip_range_data += num_to_unpack * range_entry_size * 2;
-				}
+					clip_sampling_context.clip_range_data += num_to_unpack * sizeof(rtm::float3f) * 2;
 
 				// Clip range data is 24 bytes per sub-track and as such we need to prefetch two cache lines ahead to process 4 sub-tracks
 				ACL_IMPL_ANIMATED_PREFETCH(clip_sampling_context.clip_range_data + 63);
@@ -1410,10 +1408,7 @@ namespace acl
 
 				// If we have some range reduction, skip the data we read
 				if (are_any_enum_flags_set(decomp_context.range_reduction, range_reduction_flags8::scales))
-				{
-					const uint32_t range_entry_size = 3 * sizeof(float);
-					clip_sampling_context.clip_range_data += num_to_unpack * range_entry_size * 2;
-				}
+					clip_sampling_context.clip_range_data += num_to_unpack * sizeof(rtm::float3f) * 2;
 
 				// Clip range data is 24 bytes per sub-track and as such we need to prefetch two cache lines ahead to process 4 sub-tracks
 				ACL_IMPL_ANIMATED_PREFETCH(clip_sampling_context.clip_range_data + 63);
