@@ -206,8 +206,6 @@ namespace acl
 
 			const uint8_t* range_data_start = range_data;
 			const rotation_format8 rotation_format = segment.bone_streams[0].rotations.get_rotation_format();	// The same for every track
-			const uint32_t rotation_range_member_size = rotation_format == rotation_format8::quatf_full ? sizeof(rtm::float4f) : sizeof(rtm::float3f);
-			const uint32_t vector3_range_member_size = sizeof(rtm::float3f);
 
 			// Each range entry is a min/extent at most sizeof(float4f) each, 32 bytes total max per sub-track, 4 sub-tracks per group
 			rtm::vector4f range_group_min[4];

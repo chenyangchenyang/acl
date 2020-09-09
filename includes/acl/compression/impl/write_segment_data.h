@@ -113,18 +113,21 @@ namespace acl
 				if (format_per_track_data_size != 0)
 				{
 					const uint32_t size = write_format_per_track_data(segment, format_per_track_data, format_per_track_data_size, output_bone_mapping, num_output_bones);
+					(void)size;
 					ACL_ASSERT(size == format_per_track_data_size, "Unexpected format per track data size");
 				}
 
 				if (segment.range_data_size != 0)
 				{
 					const uint32_t size = write_segment_range_data(segment, range_reduction, range_data, segment.range_data_size, output_bone_mapping, num_output_bones);
+					(void)size;
 					ACL_ASSERT(size == segment.range_data_size, "Unexpected range data size");
 				}
 
 				if (segment.animated_data_size != 0)
 				{
 					const uint32_t size = write_animated_track_data(segment, animated_data, segment.animated_data_size, output_bone_mapping, num_output_bones);
+					(void)size;
 					ACL_ASSERT(size == segment.animated_data_size, "Unexpected animated data size");
 				}
 

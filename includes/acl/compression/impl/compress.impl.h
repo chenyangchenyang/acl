@@ -459,7 +459,7 @@ namespace acl
 			}
 			else
 				buffer_size += 15;	// Ensure we have sufficient padding for unaligned 16 byte loads
-				
+
 
 			uint8_t* buffer = allocate_type_array_aligned<uint8_t>(allocator, buffer_size, alignof(compressed_tracks));
 			std::memset(buffer, 0, buffer_size);
@@ -488,9 +488,6 @@ namespace acl
 			// Our default scale is 1.0 if we have no additive base or if we don't use 'additive1', otherwise it is 0.0
 			header->set_default_scale(!is_additive || additive_format != additive_clip_format8::additive1 ? 1 : 0);
 			header->set_has_metadata(metadata_size != 0);
-
-			// Clip and segment data is relative to our transform_tracks_header
-			const uint32_t transform_tracks_header_offset = uint32_t(buffer - buffer_start);
 
 			// Write our transform tracks header
 			transform_tracks_header* transforms_header = safe_ptr_cast<transform_tracks_header>(buffer);
@@ -640,6 +637,8 @@ namespace acl
 			(void)written_constant_data_size;
 			(void)written_clip_range_data_size;
 			(void)written_segment_data_size;
+			(void)written_animated_group_types_size;
+			(void)segment_data_size;
 			(void)buffer_start;
 #endif
 
