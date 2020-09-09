@@ -50,7 +50,7 @@ namespace acl
 	namespace acl_impl
 	{
 		template<class decompression_settings_type>
-		ACL_FORCE_INLINE ACL_DISABLE_SECURITY_COOKIE_CHECK void unpack_constant_quat(const persistent_transform_decompression_context_v0& decomp_context, track_cache_v0<rtm::quatf>& track_cache, const uint8_t*& constant_data)
+		ACL_FORCE_INLINE ACL_DISABLE_SECURITY_COOKIE_CHECK void unpack_constant_quat(const persistent_transform_decompression_context_v0& decomp_context, track_cache_quatf_v0& track_cache, const uint8_t*& constant_data)
 		{
 			// Prefetch the next cache line even if we don't have any data left
 			// By the time we unpack again, it will have arrived in the CPU cache
@@ -153,7 +153,7 @@ namespace acl
 		}
 
 #if defined(ACL_IMPL_VEC3_UNPACK)
-		inline void unpack_constant_vector3(track_cache_v0<rtm::vector4f>& track_cache, const uint8_t*& constant_data)
+		inline void unpack_constant_vector3(track_cache_vector4f_v0& track_cache, const uint8_t*& constant_data)
 		{
 			uint32_t num_left_to_unpack = track_cache.num_left_to_unpack;
 			if (num_left_to_unpack == 0)
@@ -212,11 +212,11 @@ namespace acl
 
 		struct constant_track_cache_v0
 		{
-			track_cache_v0<rtm::quatf> rotations;
+			track_cache_quatf_v0 rotations;
 
 #if defined(ACL_IMPL_VEC3_UNPACK)
-			track_cache_v0<rtm::vector4f> translations;
-			track_cache_v0<rtm::vector4f> scales;
+			track_cache_vector4f_v0 translations;
+			track_cache_vector4f_v0 scales;
 #endif
 
 #if defined(ACL_IMPL_USE_CONSTANT_GROUPS)

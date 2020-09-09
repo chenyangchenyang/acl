@@ -27,6 +27,8 @@
 #include "acl/core/impl/compiler_utils.h"
 #include "acl/core/error.h"
 
+#include <rtm/math.h>
+
 #include <cstdint>
 #include <cstring>
 #include <type_traits>
@@ -336,6 +338,20 @@ namespace acl
 	inline void unaligned_write(data_type input, void* output)
 	{
 		std::memcpy(output, &input, sizeof(data_type));
+	}
+
+	// TODO: Add support for streaming prefetch (ptr, 0, 0) for arm
+	inline void memory_prefetch(const void* ptr)
+	{
+#if defined(RTM_SSE2_INTRINSICS)
+		_mm_prefetch(reinterpret_cast<const char*>(ptr), _MM_HINT_T0);
+#elif defined(ACL_COMPILER_GCC) || defined(ACL_COMPILER_CLANG)
+		__builtin_prefetch(ptr, 0, 3);
+#elif defined(RTM_NEON_INTRINSICS) && defined(ACL_COMPILER_MSVC)
+		__prefetch(ptr);
+#else
+		(void)ptr;
+#endif
 	}
 }
 

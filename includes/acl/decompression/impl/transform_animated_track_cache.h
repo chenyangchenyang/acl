@@ -88,10 +88,8 @@ namespace acl
 
 		template<class decompression_settings_type>
 		inline ACL_DISABLE_SECURITY_COOKIE_CHECK rtm::mask4f RTM_SIMD_CALL unpack_animated_quat(const persistent_transform_decompression_context_v0& decomp_context, rtm::vector4f output_scratch[4],
-			uint32_t num_to_unpack,
-			const clip_animated_sampling_context_v0& clip_sampling_context, segment_animated_sampling_context_v0& segment_sampling_context)
+			uint32_t num_to_unpack, segment_animated_sampling_context_v0& segment_sampling_context)
 		{
-			(void)clip_sampling_context;	// todo remove me
 			const rotation_format8 rotation_format = get_rotation_format<decompression_settings_type>(decomp_context.rotation_format);
 
 			uint32_t segment_range_ignore_mask = 0;
@@ -819,9 +817,9 @@ namespace acl
 
 		struct animated_track_cache_v0
 		{
-			track_cache_v0<rtm::quatf> rotations;
-			track_cache_v0<rtm::vector4f> translations;
-			track_cache_v0<rtm::vector4f> scales;
+			track_cache_quatf_v0 rotations;
+			track_cache_vector4f_v0 translations;
+			track_cache_vector4f_v0 scales;
 
 			// Scratch space when we decompress our samples before we interpolate
 			rtm::vector4f scratch0[4];
@@ -896,8 +894,8 @@ namespace acl
 				uint32_t cache_write_index = rotations.cache_write_index % 8;
 				rotations.cache_write_index += num_to_unpack;
 
-				const rtm::mask4f clip_range_mask0 = unpack_animated_quat<decompression_settings_type>(decomp_context, scratch0, num_to_unpack, clip_sampling_context, segment_sampling_context[0]);
-				const rtm::mask4f clip_range_mask1 = unpack_animated_quat<decompression_settings_type>(decomp_context, scratch1, num_to_unpack, clip_sampling_context, segment_sampling_context[1]);
+				const rtm::mask4f clip_range_mask0 = unpack_animated_quat<decompression_settings_type>(decomp_context, scratch0, num_to_unpack, segment_sampling_context[0]);
+				const rtm::mask4f clip_range_mask1 = unpack_animated_quat<decompression_settings_type>(decomp_context, scratch1, num_to_unpack, segment_sampling_context[1]);
 
 				rtm::vector4f scratch0_xxxx = scratch0[0];
 				rtm::vector4f scratch0_yyyy = scratch0[1];
